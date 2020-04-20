@@ -14,7 +14,7 @@ class Layers:
         self.save_model_name = save_model_name
 
         if weights_file:
-            self.weights = np.load(weights_file, allow_pickle=True)
+            self.weights = np.load(os.path.join('weights', weights_file), allow_pickle=True)
         else:
             initializer = tf.compat.v1.keras.initializers.glorot_uniform()
             shapes = [
@@ -184,11 +184,13 @@ class Layers:
         return tf.reduce_mean( mse + regularizer * regularization_parameter)
 
     def train_step(self, inputs, outputs ):
+        self.weights = list(self.weights)
         with tf.GradientTape() as tape:
             current_loss = self.loss( self.predict( inputs ), outputs, 100)
             grads = tape.gradient( target=current_loss , sources=self.weights )
             self.optimizer.apply_gradients( zip( grads , self.weights ) )
             print('Current loss: ', current_loss.numpy() )
+        return current_loss.numpy()
 
 if __name__ == "__main__":
     model = Layers(num_classes= 10, batch_size=1, learning_rate=0.01)

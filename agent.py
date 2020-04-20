@@ -20,92 +20,7 @@ class Agent:
         self.image_target_size = (224,224)
         self.actions = actions
         self.model = model
-    
-    def generateXML(self):
-        trees = list()
-        for i in range(3):
-            newtree = (random.randint(1,9), random.randint(5,19))
-            while newtree in trees:
-                newtree = (random.randint(1,9), random.randint(5,19))
-            trees.append(newtree)
 
-        mission_xml = '''<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-        <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-
-            <About>
-                <Summary>Tree Cutting Mission</Summary>
-            </About>
-
-            <ServerSection>
-                <ServerInitialConditions>
-                    <Time>
-                        <StartTime>1000</StartTime>
-                        <AllowPassageOfTime>false</AllowPassageOfTime>
-                    </Time>
-                    <Weather>clear</Weather>
-                    <AllowSpawning>false</AllowSpawning>
-                </ServerInitialConditions>
-                <ServerHandlers>
-                    <FlatWorldGenerator generatorString="3;7,2*3,2;4;" />
-                    <DrawingDecorator>
-                        <DrawCuboid x1="0" y1="46" z1="0" x2="10" y2="50" z2="25" type="air" />            <!-- limits of our arena -->
-                        <DrawCuboid x1="0" y1="45" z1="0" x2="10" y2="45" z2="25" type="grass" />           <!-- dirt floor -->
-                        
-                        <DrawCuboid x1="0" y1="46" z1="0" x2="0" y2="48" z2="25" type="stone" />
-                        <DrawCuboid x1="10" y1="46" z1="0" x2="10" y2="48" z2="25" type="stone" />
-                        <DrawCuboid x1="0" y1="46" z1="25" x2="10" y2="48" z2="25" type="stone" />
-                        <DrawCuboid x1="0" y1="46" z1="0" x2="10" y2="48" z2="0" type="stone" />
-
-                        <DrawBlock   x="4"   y="45"  z="1"  type="cobblestone" />                           <!-- the starting marker -->
-                        
-                        <DrawBlock   x="''' +str(trees[0][0]) +'''"   y="45"  z="''' +str(trees[0][1]) +'''" type="log" />                           <!-- the destination marker -->
-                        <DrawBlock   x="''' +str(trees[0][0]) +'''"   y="46"  z="''' +str(trees[0][1]) +'''" type="log" />                           <!-- another destination marker -->
-                        <DrawBlock   x="''' +str(trees[0][0]) +'''"   y="47"  z="''' +str(trees[0][1]) +'''" type="log" />                           <!-- the destination marker -->
-                        <DrawBlock   x="''' +str(trees[0][0]) +'''"   y="48"  z="''' +str(trees[0][1]) +'''" type="log" />                           <!-- another destination marker -->
-
-                        <DrawBlock   x="''' +str(trees[1][0]) +'''"   y="45"  z="''' +str(trees[1][1]) +'''" type="log" />                           <!-- the destination marker -->
-                        <DrawBlock   x="''' +str(trees[1][0]) +'''"   y="46"  z="''' +str(trees[1][1]) +'''" type="log" />                           <!-- another destination marker -->
-                        <DrawBlock   x="''' +str(trees[1][0]) +'''"   y="47"  z="''' +str(trees[1][1]) +'''" type="log" />                           <!-- the destination marker -->
-                        <DrawBlock   x="''' +str(trees[1][0]) +'''"   y="48"  z="''' +str(trees[1][1]) +'''" type="log" />                           <!-- another destination marker -->
-
-                        <DrawBlock   x="''' +str(trees[2][0]) +'''"   y="45"  z="''' +str(trees[2][1]) +'''" type="log" />                           <!-- the destination marker -->
-                        <DrawBlock   x="''' +str(trees[2][0]) +'''"   y="46"  z="''' +str(trees[2][1]) +'''" type="log" />                           <!-- another destination marker -->
-                        <DrawBlock   x="''' +str(trees[2][0]) +'''"   y="47"  z="''' +str(trees[2][1]) +'''" type="log" />                           <!-- the destination marker -->
-                        <DrawBlock   x="''' +str(trees[2][0]) +'''"   y="48"  z="''' +str(trees[2][1]) +'''" type="log" />                           <!-- another destination marker -->
-                    </DrawingDecorator>
-                    <ServerQuitFromTimeUp timeLimitMs="300000" />
-                    <ServerQuitWhenAnyAgentFinishes />
-                </ServerHandlers>
-            </ServerSection>
-
-            <AgentSection mode="Survival">
-                <Name>Barbie</Name>
-                <AgentStart>
-                    <Placement x="4.5" y="46.0" z="1.5" pitch="0" yaw="0"/>
-                    <Inventory>
-                        <InventoryItem slot="0" type="diamond_axe"/>
-                    </Inventory>
-                    <!-- <Placement x="1" y="45" z="0" pitch="0" yaw="0" /> -->
-                </AgentStart>
-                <AgentHandlers>
-                    <ObservationFromFullStats />
-                    <DiscreteMovementCommands />
-                    <VideoProducer want_depth="false">
-                        <Width>640</Width>
-                        <Height>480</Height>
-                    </VideoProducer>
-                    <RewardForSendingCommand reward="-1" />
-                    <RewardForTouchingBlockType>
-                        <Block reward="100.0" type="log" behaviour="oncePerBlock" />
-                        <Block reward="50.0" type="leaves" behaviour="oncePerBlock" />
-                    </RewardForTouchingBlockType>
-                    <AgentQuitFromTimeUp timeLimitMs="300000" />
-                </AgentHandlers>
-            </AgentSection>
-        </Mission>
-        '''
-        return mission_xml
-        
     def get_state(self, world_state):
         while len(world_state.video_frames) == 0:
             world_state = self.agent.peekWorldState()
@@ -135,6 +50,7 @@ class Agent:
         experiences = list()
         count = 0
         world_state = self.agent.getWorldState()
+        lowest_loss = float('inf')
 
         while world_state.is_mission_running:
             print("\n------------\nMISSION", mission_count, "RUN", count, "\n------------\n")
@@ -164,11 +80,14 @@ class Agent:
             # Finds a random number of random (s, a, r, s') sets from d
             randindexes = random.sample(range(0, len(experiences)), random.randint(0, len(experiences)-1))
             print('Random indexes chosen to update:', randindexes)
+            current_loss = float('inf')
             for i in randindexes:
+                current_state = experiences[i][0]
+                next_state = experiences[i][3]
                 reward = experiences[i][2]
                 action_index = experiences[i][1]
-                qval = self.model.predict( experiences[i][0] ).numpy() # finds predicted q values of s ( d[i][0] )
-                newQ = self.model.predict( experiences[i][3] ).numpy() # finds predicted q values of s' ( d[i][3] )
+                qval = self.model.predict(current_state).numpy() # finds predicted q values of s ( d[i][0] )
+                newQ = self.model.predict(next_state).numpy() # finds predicted q values of s' ( d[i][3] )
                 maxQ = np.max(newQ)
                 print('Got Q values of next state with maxQ:', maxQ)
                 
@@ -183,7 +102,11 @@ class Agent:
                     # update = (1 - self.alpha) * qval[0][experiences[i][1]] + self.alpha * (experiences[i][2])
                 
                 y[0][action_index] = update
-                self.model.train_step(state, tf.convert_to_tensor(y))
+                current_loss = self.model.train_step(current_state, tf.convert_to_tensor(y))
                 print('Model trained for experience ', i)
+
             world_state = self.agent.getWorldState()
             count+=1
+            if current_loss < lowest_loss:
+                lowest_loss = current_loss
+                self.model.save_weights()
