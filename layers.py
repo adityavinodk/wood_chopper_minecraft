@@ -10,11 +10,16 @@ class Layers:
         self.initializer = tf.initializers.glorot_uniform()
         self.num_classes = num_classes
         self.optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate)
+        self.model_name = 'A'
         self.save_model_name = save_model_name
 
         if weights_file:
             weight_info = np.load(os.path.join('weights', weights_file), allow_pickle=True)
-            self.weights, self.best_loss = weight_info[:12], weight_info[12]
+            if len(weight_info) == 13:
+                self.weights, self.best_loss = weight_info[:12], weight_info[12]
+            else:
+                self.weights = weight_info
+                self.best_loss = float('inf')
         else:
             initializer = tf.compat.v1.keras.initializers.glorot_uniform()
             shapes = [
@@ -39,14 +44,23 @@ class Layers:
     def get_weight( self, initializer, shape , name ):
         return tf.Variable(initializer(shape),name=name,trainable=True,dtype=tf.float32)
 
-    def save_weights(self):
-        if self.current_loss < self.best_loss:
-            if 'weights' not in os.listdir('.'):
-                os.mkdir('weights')
-            print('loss improved by %f, saving weights into %s' % (self.best_loss - self.current_loss, self.save_model_name))
-            self.best_loss = self.current_loss
+    def save_weights(self, explore):
+        if 'weights' not in os.listdir('.'):
+            os.mkdir('weights')
+
+        if not explore and self.update_loss():
             weight_info = self.weights + [self.best_loss]
             np.save(os.path.join('weights',self.save_model_name), weight_info)
+        else:
+            weight_info = self.weights
+            np.save(os.path.join('weights',self.save_model_name), weight_info)
+    
+    def update_loss(self):
+        if self.current_loss < self.best_loss:
+            self.best_loss = self.current_loss
+            print('loss improved by %f, saving weights into %s' % (self.best_loss - self.current_loss, self.save_model_name))
+            return True
+        return False
 
     def conv2d(self, inputs, filters, strides, padding='VALID'):
         output = tf.nn.conv2d(inputs, filters, [1, strides, strides, 1], padding=padding)
@@ -171,7 +185,7 @@ class Layers:
         flatten = tf.reshape(downsampling_average, shape=(tf.shape(downsampling_average)[0], -1))
         # print('flatten', flatten.shape)
         # Dense Layer of 1024 units
-        top_layer_dense_1 = self.dense(flatten, self.weights[10], dropout_rate=0.4)
+        top_layer_dense_1 = self.dense(flatten, self.weights[10], dropout_rate=0.5)
         # print('top_layer_dense_1', top_layer_dense_1.shape)
         # Dense Layer of num_classes units
         top_layer_dense_2 = self.dense(top_layer_dense_1, self.weights[11], dropout_rate=0)
@@ -190,12 +204,11 @@ class Layers:
     def train_step(self, inputs, outputs ):
         self.weights = list(self.weights)
         with tf.GradientTape() as tape:
-            current_loss = self.loss( self.predict( inputs ), outputs, 100)
+            current_loss = self.loss( self.predict( inputs ), outputs, 1)
             grads = tape.gradient( target=current_loss , sources=self.weights )
             self.optimizer.apply_gradients( zip( grads , self.weights ) )
             self.current_loss = current_loss.numpy()
             print('current loss: ', self.current_loss )
-        self.save_weights()
         return current_loss.numpy()
 
 if __name__ == "__main__":
@@ -209,7 +222,7 @@ if __name__ == "__main__":
     # print(type(output))
     print(output.numpy())
     print(np.argmax(output))
-    # np.save('test.npy', model.weights)
+    # np.save('reference/test.npy', model.weights)
     # b = np.load('test.npy', allow_pickle=True)
     # print(len(b), b.shape)
     # print(b[0].shape)

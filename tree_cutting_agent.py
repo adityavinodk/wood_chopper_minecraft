@@ -38,7 +38,7 @@ class TreeCuttingAgent:
         print('----------------------------------------------------------------')
 
         agent = Agent(self.agent_host, actions=self.action_set, batch_size=self.arguments['batch_size'], epsilon=self.arguments['epsilon'],
-                      alpha=self.arguments['alpha'], gamma=self.arguments['gamma'], model=self.model, exploration=self.arguments['explore'])
+                      alpha=self.arguments['alpha'], gamma=self.arguments['gamma'], model=self.model, explore=self.arguments['explore'])
 
         for mission_count in range(self.arguments['number_of_missions']):
 
@@ -90,7 +90,7 @@ class TreeCuttingAgent:
                 for error in world_state.errors:
                     print("Error:", error.text)
 
-        print("\nMission ended")
+        print("\nMISSION ENDED")
 
     def test(self):
         agent = Agent(self.agent_host, actions=self.action_set,
@@ -143,5 +143,5 @@ class TreeCuttingAgent:
             for error in world_state.errors:
                 print("Error:", error.text)
 
-        print("\nMission ended")
-        print("\nFinal Reward:", reward)
+        print("\nMISSION ENDED")
+        print("\nFINAL REWARD:", reward)

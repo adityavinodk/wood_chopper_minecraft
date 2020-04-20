@@ -8,9 +8,9 @@ def read_xml_file(file_path):
 def generate_xml(mission_time):
     trees = list()
     for i in range(3):
-        newtree = (random.randint(2,8), random.randint(4, 17))
+        newtree = (random.randint(2,8), random.randint(4, 8))
         while newtree in trees:
-            newtree = (random.randint(2,8), random.randint(4, 17))
+            newtree = (random.randint(2,8), random.randint(4, 8))
         trees.append(newtree)
 
     milli_seconds_time = mission_time*60*1000
@@ -80,11 +80,10 @@ def generate_xml(mission_time):
                     <Width>640</Width>
                     <Height>480</Height>
                 </VideoProducer>
-                <RewardForSendingCommand reward="-1" />
                 <RewardForTouchingBlockType>
-                    <Block reward="100.0" type="log" behaviour="constant"/>
-                    <Block reward="50.0" type="leaves" behaviour="constant"/>
-                    <Block reward="-30.0" type="stone" behaviour="constant"/>
+                    <Block reward="100.0" type="log" behaviour="constant" />
+                    <Block reward="50.0" type="leaves" behaviour="constant" />
+                    <Block reward="-30.0" type="stone" behaviour="constant" />
                 </RewardForTouchingBlockType>
                 <RewardForCollectingItem>
                     <Item reward="100" type="log"/>
