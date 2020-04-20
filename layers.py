@@ -14,7 +14,8 @@ class Layers:
         self.save_model_name = save_model_name
 
         if weights_file:
-            self.weights = np.load(weights_file, allow_pickle=True)
+            weight_info = np.load(os.path.join('weights', weights_file), allow_pickle=True)
+            self.weights, self.best_loss = weight_info[:12], weight_info[12]
         else:
             initializer = tf.compat.v1.keras.initializers.glorot_uniform()
             shapes = [
@@ -34,15 +35,19 @@ class Layers:
             self.weights = []
             for i in range( len( shapes ) ):
                 self.weights.append(self.get_weight(initializer, shapes[i], 'weight{}'.format(i)))
+            self.best_loss = float('inf')
 
     def get_weight( self, initializer, shape , name ):
         return tf.Variable(initializer(shape),name=name,trainable=True,dtype=tf.float32)
 
     def save_weights(self):
-        if 'weights' not in os.listdir('.'):
-            os.mkdir('weights')
-        print('Saving weights into', self.save_model_name)
-        np.save(os.path.join('weights',self.save_model_name), self.weights)
+        if self.current_loss < self.best_loss:
+            if 'weights' not in os.listdir('.'):
+                os.mkdir('weights')
+            print('Loss improved by %f, saving weights into %s' % (self.best_loss - self.current_loss, self.save_model_name))
+            self.best_loss = self.current_loss
+            weight_info = self.weights + [self.best_loss]
+            np.save(os.path.join('weights',self.save_model_name), weight_info)
 
     def conv2d(self, inputs, filters, strides, padding='VALID'):
         output = tf.nn.conv2d(inputs, filters, [1, strides, strides, 1], padding=padding)
@@ -184,11 +189,15 @@ class Layers:
         return tf.reduce_mean( mse + regularizer * regularization_parameter)
 
     def train_step(self, inputs, outputs ):
+        self.weights = list(self.weights)
         with tf.GradientTape() as tape:
             current_loss = self.loss( self.predict( inputs ), outputs, 100)
             grads = tape.gradient( target=current_loss , sources=self.weights )
             self.optimizer.apply_gradients( zip( grads , self.weights ) )
-            print('Current loss: ', current_loss.numpy() )
+            self.current_loss = current_loss.numpy()
+            print('Current loss: ', self.current_loss )
+        self.save_weights()
+        return current_loss.numpy()
 
 if __name__ == "__main__":
     model = Layers(num_classes= 10, batch_size=1, learning_rate=0.01)
