@@ -69,12 +69,14 @@ class Agent:
 
             self.agent.sendCommand(self.actions[action])
             world_state = self.agent.getWorldState() # Gets new world state
-
             new_state = self.get_state(world_state)
+
             reward = sum(r.getValue() for r in world_state.rewards) # Fetches reward for the state
             print('reward at current state:', reward)
+            
             experiences.append([state, action, reward, new_state]) # Appends (s, a, r, s')
             print('Saved the experience of the agent')
+            
             # Experience replay part
             # Finds a random number of random (s, a, r, s') sets from d
             randindexes = random.sample(range(0, len(experiences)), random.randint(0, len(experiences)-1))
@@ -105,3 +107,30 @@ class Agent:
 
             world_state = self.agent.getWorldState()
             count+=1
+        
+    def test(self):
+        world_state = self.agent.getWorldState()
+        total_rewards = 0
+
+        while world_state.is_mission_running:
+            current_state = self.get_state(world_state)
+            
+            # Fetch q-values for the current state
+            qvals = self.model.predict(current_state).numpy()
+            print('Got Q values of current state:', qvals)
+            
+            # Choose best action
+            action = np.argmax(qvals)
+            print('Choosing best action ', self.actions[action])
+
+            # Perform best action
+            self.agent.sendCommand(self.actions[action])
+            time.sleep(1)
+            world_state = self.agent.getWorldState() # Update world state
+
+            current_reward = sum(r.getValue() for r in world_state.rewards) # Fetches reward for the state
+            print('Reward at current state:', current_reward)
+            total_rewards += current_reward
+            print('Total rewards at this point:', total_rewards)
+        
+        return total_rewards

@@ -126,5 +126,57 @@ if arguments['train']:
                 print("Error:", error.text)
 
     print("\nMission ended")
-# else:
-    # TODO: Add testing segment
+
+else:
+    epsilon_value = arguments['epsilon']
+    agent = Agent(agent_host, actions=action_set,
+                  epsilon=epsilon_value, alpha=arguments['alpha'], gamma=arguments['gamma'], model=model)
+    
+    if not arguments['xml_file']:
+        mission_xml = generate_xml(arguments['mission_time'])
+        print('GENERATING RANDOM MISSION ENVIRONMENT')
+    else:
+        mission_xml = read_xml_file(arguments['xml_file'])
+        print('GENERATING MISSION ENVIRONMENT FROM', arguments['xml_file'])
+
+    my_mission = MalmoPython.MissionSpec(mission_xml, True)
+    my_mission_record = MalmoPython.MissionRecordSpec()
+    my_mission.allowAllDiscreteMovementCommands()
+    my_mission.requestVideo(600, 400)
+    my_mission.setViewpoint(0)
+
+    for retry in range(max_retries):
+        try:
+            agent_host.startMission(my_mission, my_mission_record)
+            break
+        except RuntimeError as e:
+            if retry == max_retries - 1:
+                print("Error starting mission:", e)
+                exit(1)
+            else:
+                time.sleep(2)
+
+    print("Waiting for the mission to start ", end=' ')
+    world_state = agent_host.getWorldState()
+    while not world_state.has_mission_begun:
+        print(".", end="")
+        time.sleep(0.1)
+        world_state = agent_host.getWorldState()
+        for error in world_state.errors:
+            print("Error:", error.text)
+    print()
+
+    print("Mission running ", end=' ')
+    time.sleep(1)
+
+    reward = agent.test()
+
+    while world_state.is_mission_running:
+        print(".", end="")
+        time.sleep(0.1)
+        world_state = agent_host.getWorldState()
+        for error in world_state.errors:
+            print("Error:", error.text)
+
+    print("\nMission ended")
+    print("\nFinal Reward:", reward)
