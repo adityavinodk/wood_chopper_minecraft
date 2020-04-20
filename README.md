@@ -10,5 +10,5 @@ $ pip install -r requirements.txt
 
 4. Check the arguments for `tree_cutting_agent.py` using help argument and run according.
 ```sh
-$ python tree_cutting_agent.py -h
+$ python run.py -h
 ``` 

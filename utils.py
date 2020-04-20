@@ -84,6 +84,7 @@ def generate_xml(mission_time):
                 <RewardForTouchingBlockType>
                     <Block reward="100.0" type="log" behaviour="oncePerBlock" />
                     <Block reward="50.0" type="leaves" behaviour="oncePerBlock" />
+                    <Block reward="-30.0" type="stone" behaviour="oncePerBlock" />
                 </RewardForTouchingBlockType>
                 <AgentQuitFromTimeUp timeLimitMs="'''+str(milli_seconds_time)+'''" />
             </AgentHandlers>

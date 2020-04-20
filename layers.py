@@ -6,8 +6,7 @@ from PIL import Image
 tf.compat.v1.enable_eager_execution()
 
 class Layers:
-    def __init__(self, num_classes, batch_size, learning_rate, save_model_name='weights.npy', weights_file=None):
-        self.batch_size = batch_size
+    def __init__(self, num_classes, learning_rate, save_model_name='weights.npy', weights_file=None):
         self.initializer = tf.initializers.glorot_uniform()
         self.num_classes = num_classes
         self.optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate)
@@ -44,7 +43,7 @@ class Layers:
         if self.current_loss < self.best_loss:
             if 'weights' not in os.listdir('.'):
                 os.mkdir('weights')
-            print('Loss improved by %f, saving weights into %s' % (self.best_loss - self.current_loss, self.save_model_name))
+            print('loss improved by %f, saving weights into %s' % (self.best_loss - self.current_loss, self.save_model_name))
             self.best_loss = self.current_loss
             weight_info = self.weights + [self.best_loss]
             np.save(os.path.join('weights',self.save_model_name), weight_info)
@@ -195,12 +194,12 @@ class Layers:
             grads = tape.gradient( target=current_loss , sources=self.weights )
             self.optimizer.apply_gradients( zip( grads , self.weights ) )
             self.current_loss = current_loss.numpy()
-            print('Current loss: ', self.current_loss )
+            print('current loss: ', self.current_loss )
         self.save_weights()
         return current_loss.numpy()
 
 if __name__ == "__main__":
-    model = Layers(num_classes= 10, batch_size=1, learning_rate=0.01)
+    model = Layers(num_classes= 10, learning_rate=0.01)
     # print(model.weights[0])
     image = Image.open('reference/test.png')
     np_image = np.asarray(image)
