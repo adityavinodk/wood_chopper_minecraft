@@ -9,7 +9,7 @@ from utils import generate_xml, read_xml_file
 try:
     import MalmoPython
 except ImportError:
-    print('Add MalmoPython folder to PYTHON sys.path')
+    print('Add MalmoPython module folder to PYTHON sys.path')
 
 def str2bool(v):
     if isinstance(v, bool):

@@ -1,0 +1,5 @@
+future==0.18.2
+tensorflow==2.1.0
+malmo==0.37.0.0
+numpy==1.16.4
+Pillow==7.1.1
