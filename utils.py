@@ -1,16 +1,18 @@
 import random
 
+# Read specific XML file
 def read_xml_file(file_path):
     with open(file_path, 'r') as f:
         xml = f.read()
     return xml
 
+# Generate random XML Mission specifications for Malmo
 def generate_xml(mission_time):
     trees = list()
     for i in range(3):
-        newtree = (random.randint(1,9), random.randint(5,19))
+        newtree = (random.randint(2,8), random.randint(4, 8))
         while newtree in trees:
-            newtree = (random.randint(1,9), random.randint(5,19))
+            newtree = (random.randint(2,8), random.randint(4, 8))
         trees.append(newtree)
 
     milli_seconds_time = mission_time*60*1000
@@ -34,12 +36,12 @@ def generate_xml(mission_time):
             <ServerHandlers>
                 <FlatWorldGenerator generatorString="3;7,2*3,2;4;" />
                 <DrawingDecorator>
-                    <DrawCuboid x1="0" y1="46" z1="0" x2="10" y2="50" z2="25" type="air" />            <!-- limits of our arena -->
-                    <DrawCuboid x1="0" y1="45" z1="0" x2="10" y2="45" z2="25" type="grass" />           <!-- dirt floor -->
+                    <DrawCuboid x1="0" y1="46" z1="0" x2="10" y2="50" z2="20" type="air" />            <!-- limits of our arena -->
+                    <DrawCuboid x1="0" y1="45" z1="0" x2="10" y2="45" z2="20" type="grass" />           <!-- dirt floor -->
                     
-                    <DrawCuboid x1="0" y1="46" z1="0" x2="0" y2="48" z2="25" type="stone" />
-                    <DrawCuboid x1="10" y1="46" z1="0" x2="10" y2="48" z2="25" type="stone" />
-                    <DrawCuboid x1="0" y1="46" z1="25" x2="10" y2="48" z2="25" type="stone" />
+                    <DrawCuboid x1="0" y1="46" z1="0" x2="0" y2="48" z2="20" type="stone" />
+                    <DrawCuboid x1="10" y1="46" z1="0" x2="10" y2="48" z2="20" type="stone" />
+                    <DrawCuboid x1="0" y1="46" z1="20" x2="10" y2="48" z2="20" type="stone" />
                     <DrawCuboid x1="0" y1="46" z1="0" x2="10" y2="48" z2="0" type="stone" />
 
                     <DrawBlock   x="4"   y="45"  z="1"  type="cobblestone" />                           <!-- the starting marker -->
@@ -80,11 +82,14 @@ def generate_xml(mission_time):
                     <Width>640</Width>
                     <Height>480</Height>
                 </VideoProducer>
-                <RewardForSendingCommand reward="-1" />
                 <RewardForTouchingBlockType>
-                    <Block reward="100.0" type="log" behaviour="oncePerBlock" />
-                    <Block reward="50.0" type="leaves" behaviour="oncePerBlock" />
+                    <Block reward="40.0" type="log" behaviour="constant" />
+                    <Block reward="50.0" type="leaves" behaviour="constant" />
+                    <Block reward="-30.0" type="stone" behaviour="constant" />
                 </RewardForTouchingBlockType>
+                <RewardForCollectingItem>
+                    <Item reward="100" type="log"/>
+                </RewardForCollectingItem>
                 <AgentQuitFromTimeUp timeLimitMs="'''+str(milli_seconds_time)+'''" />
             </AgentHandlers>
         </AgentSection>
