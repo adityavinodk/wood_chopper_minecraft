@@ -12,3 +12,4 @@ $ pip install -r requirements.txt
 ```sh
 $ python run.py -h
 ``` 
+To train the agent run `python run.py` and to test run `python run.py --train false weights_file <weights>`

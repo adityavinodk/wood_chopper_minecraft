@@ -11,6 +11,8 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected')
 
+# Run $python run.py -h to print the necessary arguments and their use
+
 ap = argparse.ArgumentParser(
     description='Script to run the Malmo agent to cut trees')
 ap.add_argument('--train', type=str2bool,
@@ -32,7 +34,7 @@ ap.add_argument('--mission_time', type=float,
 ap.add_argument('--save_model_name', type=str,
                 help='name of the file to save the weights after each mission, defaults to weights.npy', default='weights.npy')
 ap.add_argument('--weights_file', type=str,
-                help='name of the weights file inside weights directory, defaults to None')
+                help='name of the weights .npy file inside weights directory, defaults to None')
 ap.add_argument('--batch_size', type=int,
                 help='number of frames to train in one epoch, defaults to 1', default=1)
 ap.add_argument('--explore', type=str2bool,
@@ -44,4 +46,8 @@ if __name__ == "__main__":
     if arguments['train']:
         agent.train()
     else:
-        agent.test()
+        if arguments['weights_file']:
+            agent.test()
+        else:
+            print('Weights file not provided.')
+            exit()

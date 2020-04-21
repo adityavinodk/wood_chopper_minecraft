@@ -10,12 +10,15 @@ except ImportError:
 class TreeCuttingAgent:
     def __init__(self, arguments):
         self.agent_host = MalmoPython.AgentHost()
+        # Defined action set of the agent
         self.action_set = ["movenorth 1", "movesouth 1",
                            "movewest 1", "moveeast 1", "attack 1"]
         self.action_set_length = len(self.action_set)
         self.max_retries = 3
+        # Retrieve arguments from run.py
         self.arguments = arguments
 
+        # Depending on whether weights should be uploaded from existing file, initialize layers class
         if not arguments['weights_file']:
             self.model = Layers(num_classes=self.action_set_length,
                                 learning_rate=arguments['learning_rate'], save_model_name=arguments['save_model_name'])
@@ -37,12 +40,15 @@ class TreeCuttingAgent:
         print('MISSION TIME OF AGENT:', self.arguments['mission_time'])
         print('----------------------------------------------------------------')
 
+        # generate Agent class object
         agent = Agent(self.agent_host, actions=self.action_set, batch_size=self.arguments['batch_size'], epsilon=self.arguments['epsilon'],
                       alpha=self.arguments['alpha'], gamma=self.arguments['gamma'], model=self.model, explore=self.arguments['explore'])
 
+        # Run mission several times 
         for mission_count in range(self.arguments['number_of_missions']):
 
             print("\nMISSION %d\n" % (mission_count+1))
+            # Generate random or specific Malmo Environment
             if not self.arguments['xml_file']:
                 mission_xml = generate_xml(self.arguments['mission_time'])
                 print('GENERATING RANDOM MISSION ENVIRONMENT')
@@ -51,6 +57,7 @@ class TreeCuttingAgent:
                 print('GENERATING MISSION ENVIRONMENT FROM',
                       self.arguments['xml_file'])
 
+            # Initiate Malmo Mission
             my_mission = MalmoPython.MissionSpec(mission_xml, True)
             my_mission_record = MalmoPython.MissionRecordSpec()
             my_mission.allowAllDiscreteMovementCommands()
@@ -81,6 +88,7 @@ class TreeCuttingAgent:
             print("Mission running ", end=' ')
             time.sleep(1)
 
+            # Train the agent
             agent.train(mission_count)
 
             while world_state.is_mission_running:
@@ -96,6 +104,7 @@ class TreeCuttingAgent:
         agent = Agent(self.agent_host, actions=self.action_set,
                       model=self.model)
 
+        # Generate random or specific Malmo Environment
         if not self.arguments['xml_file']:
             mission_xml = generate_xml(self.arguments['mission_time'])
             print('GENERATING RANDOM MISSION ENVIRONMENT')
@@ -104,6 +113,7 @@ class TreeCuttingAgent:
             print('GENERATING MISSION ENVIRONMENT FROM',
                   self.arguments['xml_file'])
 
+        # Initiate Malmo Mission
         my_mission = MalmoPython.MissionSpec(mission_xml, True)
         my_mission_record = MalmoPython.MissionRecordSpec()
         my_mission.allowAllDiscreteMovementCommands()
@@ -134,6 +144,7 @@ class TreeCuttingAgent:
         print("Mission running ", end=' ')
         time.sleep(1)
 
+        # Test the agent with uploaded weights file
         reward = agent.test()
 
         while world_state.is_mission_running:

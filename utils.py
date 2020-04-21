@@ -1,10 +1,12 @@
 import random
 
+# Read specific XML file
 def read_xml_file(file_path):
     with open(file_path, 'r') as f:
         xml = f.read()
     return xml
 
+# Generate random XML Mission specifications for Malmo
 def generate_xml(mission_time):
     trees = list()
     for i in range(3):
@@ -81,7 +83,7 @@ def generate_xml(mission_time):
                     <Height>480</Height>
                 </VideoProducer>
                 <RewardForTouchingBlockType>
-                    <Block reward="100.0" type="log" behaviour="constant" />
+                    <Block reward="40.0" type="log" behaviour="constant" />
                     <Block reward="50.0" type="leaves" behaviour="constant" />
                     <Block reward="-30.0" type="stone" behaviour="constant" />
                 </RewardForTouchingBlockType>
